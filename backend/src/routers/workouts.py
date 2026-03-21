@@ -137,3 +137,73 @@ async def get_prs(
         }
         for row in rows
     ]
+
+@router.get("/exercise/{exercise_id}/history")
+async def get_exercise_history(
+    exercise_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(WorkoutSet, Workout)
+        .join(Workout, WorkoutSet.workout_id == Workout.id)
+        .where(
+            WorkoutSet.exercise_id == exercise_id,
+            Workout.user_id == current_user.id
+        )
+        .order_by(Workout.date.asc())
+    )
+    rows = result.all()
+
+    if not rows:
+        return {"exercise_id": exercise_id, "history": [], "pr": None}
+
+    # group by date, take best set per day
+    daily_best = {}
+    for ws, workout in rows:
+        if workout.date not in daily_best or ws.weight_kg > daily_best[workout.date]["weight_kg"]:
+            daily_best[workout.date] = {
+                "date": workout.date,
+                "weight_kg": ws.weight_kg,
+                "reps": ws.reps,
+                "rpe": ws.rpe,
+            }
+
+    history = sorted(daily_best.values(), key=lambda x: x["date"])
+
+    # yoy comparison
+    yoy = None
+    if len(history) >= 2:
+        latest = history[-1]["weight_kg"]
+        one_year_ago = [h for h in history if h["date"] <= history[-1]["date"][:4 - 1] + str(int(history[-1]["date"][:4]) - 1) + history[-1]["date"][4:]]
+        if one_year_ago:
+            yoy = round(((latest - one_year_ago[-1]["weight_kg"]) / one_year_ago[-1]["weight_kg"]) * 100, 1)
+
+    # current pr
+    pr_result = await db.execute(
+        select(PersonalRecord).where(
+            PersonalRecord.user_id == current_user.id,
+            PersonalRecord.exercise_id == exercise_id
+        )
+    )
+    pr = pr_result.scalar_one_or_none()
+
+    return {
+        "exercise_id": exercise_id,
+        "history": history,
+        "pr": {"weight_kg": pr.weight_kg, "reps": pr.reps, "achieved_at": pr.achieved_at} if pr else None,
+        "yoy_percent": yoy,
+        "data_points": len(history),
+    }
+
+@router.get("/exercises")
+async def get_exercises(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Exercise).where(
+            (Exercise.created_by == current_user.id) | (Exercise.is_custom == False)
+        )
+    )
+    return result.scalars().all()
