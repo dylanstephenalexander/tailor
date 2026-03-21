@@ -1,0 +1,224 @@
+.page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding-bottom: 100px;
+  }
+  
+  .header {
+    padding: 52px 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .backButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+  
+  .title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--dark);
+  }
+  
+  .section {
+    padding: 0 20px;
+    margin-top: 20px;
+  }
+  
+  .sectionLabel {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  
+  .prGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .prCard {
+    background: var(--card);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    border: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  
+  .prCard:hover {
+    border-color: var(--primary);
+  }
+  
+  .prCard.active {
+    border-color: var(--primary);
+    background: #FFF0F3;
+  }
+  
+  .prLeft {
+    flex: 1;
+  }
+  
+  .prName {
+    font-size: 14px;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+  
+  .prMuscle {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .prRight {
+    text-align: right;
+  }
+  
+  .prWeight {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--primary);
+  }
+  
+  .prReps {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  
+  .prDate {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  
+  .chartCard {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 0.5px solid var(--border);
+    margin-top: 8px;
+  }
+  
+  .chartTitle {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  
+  .chartMeta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  
+  .yoyBadge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+  
+  .yoyPositive {
+    background: #FFF0F3;
+    color: var(--primary);
+  }
+  
+  .yoyNegative {
+    background: var(--bg);
+    color: var(--muted);
+  }
+  
+  .noData {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    padding: 24px 0;
+  }
+  
+  .emptyState {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 32px 0;
+  }
+  
+  .weightSection {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 0.5px solid var(--border);
+  }
+  
+  .weightRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .weightInput {
+    flex: 1;
+  }
+  
+  .logWeightButton {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: var(--card);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    white-space: nowrap;
+  }
+  
+  .trendCard {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 0.5px solid var(--border);
+  }
+  
+  .trendRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  
+  .trendRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .trendLabel {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  
+  .trendValue {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--dark);
+  }

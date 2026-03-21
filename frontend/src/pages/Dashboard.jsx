@@ -192,6 +192,22 @@ export default function Dashboard() {
             </div>
           ))
         )}
+        <button
+          onClick={() => navigate('/progress')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--primary)',
+            fontSize: 13,
+            cursor: 'pointer',
+            width: '100%',
+            marginTop: 8,
+            fontFamily: 'var(--font-sans)',
+            padding: '4px 0',
+          }}
+        >
+          See progress & PRs →
+        </button>
       </div>
 
       <nav className={styles.bottomNav}>
