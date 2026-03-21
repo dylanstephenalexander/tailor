@@ -148,6 +148,22 @@ export default function Dashboard() {
         <button className={styles.logButton} onClick={() => navigate('/food')}>
           + Log food
         </button>
+        <button
+          onClick={() => navigate('/nutrition')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--primary)',
+            fontSize: 13,
+            cursor: 'pointer',
+            width: '100%',
+            marginTop: 8,
+            fontFamily: 'var(--font-sans)',
+            padding: '4px 0',
+          }}
+        >
+          See full nutrition breakdown →
+        </button>
       </div>
 
       <div className={styles.section}>

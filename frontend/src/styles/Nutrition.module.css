@@ -1,0 +1,195 @@
+.page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding-bottom: 100px;
+  }
+  
+  .header {
+    padding: 52px 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .backButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+  
+  .title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--dark);
+  }
+  
+  .section {
+    padding: 0 20px;
+    margin-top: 20px;
+  }
+  
+  .sectionLabel {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  
+  .card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 4px 0;
+    border: 0.5px solid var(--border);
+  }
+  
+  .nutrientRow {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  
+  .nutrientRow:last-child {
+    border-bottom: none;
+  }
+  
+  .nutrientLeft {
+    flex: 1;
+  }
+  
+  .nutrientName {
+    font-size: 14px;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  
+  .nutrientBar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 10px;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .nutrientBarFill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+  }
+  
+  .nutrientRight {
+    text-align: right;
+    margin-left: 16px;
+    flex-shrink: 0;
+  }
+  
+  .nutrientValue {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--dark);
+  }
+  
+  .nutrientTarget {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  
+  .nutrientPct {
+    font-size: 11px;
+    margin-top: 1px;
+  }
+  
+  .alertBanner {
+    background: #FFF0F3;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .alertIcon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  
+  .alertText {
+    font-size: 13px;
+    color: var(--dark);
+    line-height: 1.5;
+  }
+  
+  .alertNutrient {
+    font-weight: 500;
+    color: var(--primary);
+  }
+  
+  .emptyState {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 32px 0;
+  }
+  
+  .macroSummary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .macroCard {
+    background: var(--card);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    border: 0.5px solid var(--border);
+  }
+  
+  .macroCardLabel {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  
+  .macroCardValue {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    color: var(--dark);
+  }
+  
+  .macroCardUnit {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  
+  .macroCardTarget {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  
+  .macroCardBar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 10px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  
+  .macroCardBarFill {
+    height: 100%;
+    border-radius: 10px;
+  }
