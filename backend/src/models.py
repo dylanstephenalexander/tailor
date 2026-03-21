@@ -12,6 +12,19 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    age = Column(Integer, nullable=True)
+    sex = Column(String, nullable=True)
+    goal = Column(String, default="maintain")
+    target_weekly_change_kg = Column(Float, default=0.0)
+    birthday = Column(String, nullable=True)
+
 
 class FoodItem(Base):
     __tablename__ = "food_items"
