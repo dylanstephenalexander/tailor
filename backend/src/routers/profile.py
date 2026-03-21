@@ -16,6 +16,7 @@ class ProfileCreate(BaseModel):
     goal: str = "maintain"
     target_weekly_change_kg: float = 0.0
     birthday: str | None = None
+    oura_token: str | None = None
 
 class ProfileResponse(ProfileCreate):
     id: int

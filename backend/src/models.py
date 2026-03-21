@@ -24,6 +24,7 @@ class UserProfile(Base):
     goal = Column(String, default="maintain")
     target_weekly_change_kg = Column(Float, default=0.0)
     birthday = Column(String, nullable=True)
+    oura_token = Column(String, nullable=True)
 
 
 class FoodItem(Base):
@@ -137,3 +138,12 @@ class PersonalRecord(Base):
     weight_kg = Column(Float, nullable=False)
     reps = Column(Integer, nullable=False)
     achieved_at = Column(String, nullable=False)
+
+class WeightLog(Base):
+    __tablename__ = "weight_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    weight_kg = Column(Float, nullable=False)
+    date = Column(String, nullable=False)
+    logged_at = Column(DateTime, server_default=func.now())
