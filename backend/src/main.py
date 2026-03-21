@@ -1,8 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .database import engine, Base
 from . import models
-from .routers import auth
+from .routers import auth, nutrition
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +16,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth.router)
+app.include_router(nutrition.router)
 
 @app.get("/")
 def root():
