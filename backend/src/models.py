@@ -30,6 +30,13 @@ class FoodItem(Base):
     saturated_fat = Column(Float, default=0)
     trans_fat = Column(Float, default=0)
     cholesterol = Column(Float, default=0)
+    polyunsaturated_fat = Column(Float, default=0)
+    monounsaturated_fat = Column(Float, default=0)
+
+    # omegas
+    omega_3 = Column(Float, default=0)
+    omega_6 = Column(Float, default=0)
+    omega_9 = Column(Float, default=0)
 
     # micros
     sodium = Column(Float, default=0)
@@ -38,6 +45,12 @@ class FoodItem(Base):
     iron = Column(Float, default=0)
     magnesium = Column(Float, default=0)
     zinc = Column(Float, default=0)
+    phosphorus = Column(Float, default=0)
+    selenium = Column(Float, default=0)
+    copper = Column(Float, default=0)
+    manganese = Column(Float, default=0)
+    chromium = Column(Float, default=0)
+    iodine = Column(Float, default=0)
     vitamin_a = Column(Float, default=0)
     vitamin_c = Column(Float, default=0)
     vitamin_d = Column(Float, default=0)
@@ -49,6 +62,8 @@ class FoodItem(Base):
     thiamin = Column(Float, default=0)
     riboflavin = Column(Float, default=0)
     niacin = Column(Float, default=0)
+    pantothenic_acid = Column(Float, default=0)
+    biotin = Column(Float, default=0)
     choline = Column(Float, default=0)
 
     is_custom = Column(Boolean, default=False)
