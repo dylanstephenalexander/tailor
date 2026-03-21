@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #F5E3E0;
+  --card: #FFF0F3;
+  --border: #E8B4BC;
+  --primary: #D282A6;
+  --dark: #3A3238;
+  --muted: #6E4555;
+  --font-serif: 'Lora', serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+}
+
+body {
+  background: var(--bg);
+  font-family: var(--font-sans);
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--dark);
+  outline: none;
+  font-family: var(--font-sans);
+  box-sizing: border-box;
+}
+
+input:focus {
+  border-color: var(--primary);
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}

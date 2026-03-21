@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import client from '../api/client'
+import styles from '../styles/Auth.module.css'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -61,158 +62,72 @@ export default function Register() {
     }
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 14px',
-    paddingRight: 44,
-    borderRadius: 12,
-    border: '0.5px solid #EDD5C0',
-    background: '#FAF6F1',
-    fontSize: 14,
-    color: '#2C1A0E',
-    outline: 'none',
-    boxSizing: 'border-box',
-    fontFamily: "'DM Sans', sans-serif",
-  }
-
-  const labelStyle = {
-    fontSize: 12,
-    color: '#A07B5C',
-    display: 'block',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-  }
-
-  const eyeButtonStyle = {
-    position: 'absolute',
-    right: 12,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#A07B5C',
-    padding: 0,
-    display: 'flex',
-    alignItems: 'center',
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#FAF6F1',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: "'DM Sans', sans-serif",
-    }}>
-      <div style={{
-        background: '#FFF8F3',
-        border: '0.5px solid #EDD5C0',
-        borderRadius: 24,
-        padding: '40px 36px',
-        width: '100%',
-        maxWidth: 380,
-      }}>
-        <h1 style={{
-          fontFamily: "'Lora', serif",
-          fontSize: 32,
-          fontWeight: 400,
-          color: '#2C1A0E',
-          marginBottom: 4,
-        }}>Tailor</h1>
-        <p style={{ color: '#A07B5C', fontSize: 14, marginBottom: 32 }}>fitted to you</p>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.logo}>Tailor</h1>
+        <p className={styles.tagline}>fitted to you</p>
 
-        {error && (
-          <div style={{
-            background: '#FAECE7',
-            color: '#993C1D',
-            borderRadius: 12,
-            padding: '10px 14px',
-            fontSize: 13,
-            marginBottom: 16,
-            border: '0.5px solid #F0997B',
-          }}>{error}</div>
-        )}
+        {error && <div className={styles.error}>{error}</div>}
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Email</label>
+        <div className={styles.field}>
+          <label className={styles.label}>Email</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="you@email.com"
-            style={{ ...inputStyle, paddingRight: 14 }}
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Username</label>
+        <div className={styles.field}>
+          <label className={styles.label}>Username</label>
           <input
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
             placeholder="yourname"
-            style={{ ...inputStyle, paddingRight: 14 }}
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Password</label>
-          <div style={{ position: 'relative' }}>
+        <div className={styles.field}>
+          <label className={styles.label}>Password</label>
+          <div className={styles.inputWrapper}>
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="At least 8 characters, 1 number"
-              style={inputStyle}
+              style={{ paddingRight: 44 }}
             />
-            <button onClick={() => setShowPassword(!showPassword)} style={eyeButtonStyle}>
+            <button className={styles.eyeButton} onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Confirm password</label>
-          <div style={{ position: 'relative' }}>
+        <div className={styles.fieldLast}>
+          <label className={styles.label}>Confirm password</label>
+          <div className={styles.inputWrapper}>
             <input
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               placeholder="Repeat your password"
-              style={inputStyle}
+              style={{ paddingRight: 44 }}
             />
-            <button onClick={() => setShowConfirm(!showConfirm)} style={eyeButtonStyle}>
+            <button className={styles.eyeButton} onClick={() => setShowConfirm(!showConfirm)}>
               {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: loading ? '#A07B5C' : '#2C1A0E',
-            color: '#FAF6F1',
-            border: 'none',
-            borderRadius: 14,
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: "'DM Sans', sans-serif",
-            transition: 'background 0.2s',
-          }}
-        >
+        <button className={styles.submitButton} onClick={handleSubmit} disabled={loading}>
           {loading ? 'Creating account...' : 'Create account'}
         </button>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#A07B5C' }}>
-          Already have an account?{' '}
-          <a href="/login" style={{ color: '#C4714A', textDecoration: 'none' }}>Sign in</a>
+        <p className={styles.footer}>
+          Already have an account? <Link to="/login" className={styles.link}>Sign in</Link>
         </p>
       </div>
     </div>

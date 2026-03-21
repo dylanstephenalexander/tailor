@@ -1,0 +1,116 @@
+.container {
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  
+  .card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+  }
+  
+  .logo {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  
+  .tagline {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  
+  .error {
+    background: #FFF0F3;
+    color: var(--muted);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    border: 0.5px solid var(--border);
+  }
+  
+  .field {
+    margin-bottom: 16px;
+  }
+  
+  .fieldLast {
+    margin-bottom: 24px;
+  }
+  
+  .label {
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  
+  .inputWrapper {
+    position: relative;
+  }
+  
+  .eyeButton {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .submitButton {
+    width: 100%;
+    padding: 14px;
+    background: var(--dark);
+    color: var(--bg);
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  
+  .submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  
+  .link {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  
+  .forgotLink {
+    display: block;
+    text-align: right;
+    font-size: 12px;
+    color: var(--primary);
+    text-decoration: none;
+    margin-bottom: 24px;
+    margin-top: 4px;
+  }
