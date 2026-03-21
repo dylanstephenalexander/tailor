@@ -103,3 +103,18 @@ async def get_log(
         "entries": entries,
         "totals": {k: round(v, 1) for k, v in totals.items()}
     }
+
+@router.delete("/{log_id}", status_code=204)
+async def delete_log(
+    log_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(FoodLog).where(FoodLog.id == log_id, FoodLog.user_id == current_user.id)
+    )
+    log = result.scalar_one_or_none()
+    if not log:
+        raise HTTPException(status_code=404, detail="Log entry not found")
+    await db.delete(log)
+    await db.commit()

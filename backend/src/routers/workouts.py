@@ -237,3 +237,40 @@ async def search_exercises(
         ).limit(10)
     )
     return result.scalars().all()
+
+@router.delete("/{workout_id}", status_code=204)
+async def delete_workout(
+    workout_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Workout).where(Workout.id == workout_id, Workout.user_id == current_user.id)
+    )
+    workout = result.scalar_one_or_none()
+    if not workout:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    # delete sets first
+    sets = await db.execute(select(WorkoutSet).where(WorkoutSet.workout_id == workout_id))
+    for s in sets.scalars().all():
+        await db.delete(s)
+    await db.delete(workout)
+    await db.commit()
+
+@router.delete("/sets/{set_id}", status_code=204)
+async def delete_set(
+    set_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(WorkoutSet)
+        .join(Workout, WorkoutSet.workout_id == Workout.id)
+        .where(WorkoutSet.id == set_id, Workout.user_id == current_user.id)
+    )
+    s = result.scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Set not found")
+    await db.delete(s)
+    await db.commit()
+

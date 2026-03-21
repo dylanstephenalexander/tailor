@@ -171,3 +171,21 @@ async def lookup_barcode(
 
     product = resp.json().get("product", {})
     return {"source": "open_food_facts", "food": map_off_product(product)}
+
+@router.delete("/food/{food_id}", status_code=204)
+async def delete_food_item(
+    food_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(FoodItem).where(
+            FoodItem.id == food_id,
+            FoodItem.created_by == current_user.id
+        )
+    )
+    food = result.scalar_one_or_none()
+    if not food:
+        raise HTTPException(status_code=404, detail="Food item not found or not yours to delete")
+    await db.delete(food)
+    await db.commit()
