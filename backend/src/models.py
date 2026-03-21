@@ -93,3 +93,47 @@ class FoodLog(Base):
     meal_type = Column(String, default="snack")
     servings = Column(Float, default=1.0)
     logged_at = Column(DateTime, server_default=func.now())
+
+
+class Exercise(Base):
+    __tablename__ = "exercises"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    muscle_group = Column(String, nullable=True)
+    is_custom = Column(Boolean, default=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+
+class Workout(Base):
+    __tablename__ = "workouts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    date = Column(String, nullable=False)
+    notes = Column(String, nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
+    logged_at = Column(DateTime, server_default=func.now())
+
+
+class WorkoutSet(Base):
+    __tablename__ = "workout_sets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    workout_id = Column(Integer, ForeignKey("workouts.id"), nullable=False)
+    exercise_id = Column(Integer, ForeignKey("exercises.id"), nullable=False)
+    set_number = Column(Integer, nullable=False)
+    reps = Column(Integer, nullable=False)
+    weight_kg = Column(Float, nullable=False)
+    rpe = Column(Float, nullable=True)
+
+
+class PersonalRecord(Base):
+    __tablename__ = "personal_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    exercise_id = Column(Integer, ForeignKey("exercises.id"), nullable=False)
+    weight_kg = Column(Float, nullable=False)
+    reps = Column(Integer, nullable=False)
+    achieved_at = Column(String, nullable=False)
