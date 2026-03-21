@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, Search, Dumbbell, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getProfile, createProfile, updateProfile, logWeight } from '../api/profile'
+import BottomNav from '../components/BottomNav'
+import PageHeader from '../components/PageHeader'
+import SectionLabel from '../components/SectionLabel'
+import Card from '../components/Card'
+import LoadingScreen from '../components/LoadingScreen'
 import styles from '../styles/Profile.module.css'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -10,22 +14,13 @@ const today = () => new Date().toISOString().split('T')[0]
 export default function Profile() {
   const { logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [weight, setWeight] = useState('')
-
   const [form, setForm] = useState({
-    height_cm: '',
-    weight_kg: '',
-    age: '',
-    sex: 'female',
-    goal: 'maintain',
-    target_weekly_change_kg: 0,
-    birthday: '',
-    oura_token: '',
+    height_cm: '', weight_kg: '', age: '', sex: 'female',
+    goal: 'maintain', target_weekly_change_kg: 0, birthday: '', oura_token: '',
   })
 
   useEffect(() => {
@@ -58,14 +53,9 @@ export default function Profile() {
         age: form.age ? parseInt(form.age) : null,
         target_weekly_change_kg: parseFloat(form.target_weekly_change_kg),
       }
-      if (profile) {
-        await updateProfile(data)
-      } else {
-        await createProfile(data)
-      }
-      if (form.weight_kg) {
-        await logWeight({ weight_kg: parseFloat(form.weight_kg), date: today() })
-      }
+      if (profile) await updateProfile(data)
+      else await createProfile(data)
+      if (form.weight_kg) await logWeight({ weight_kg: parseFloat(form.weight_kg), date: today() })
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
@@ -77,56 +67,36 @@ export default function Profile() {
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
-  const navItems = [
-    { label: 'Home', path: '/', icon: Home },
-    { label: 'Food', path: '/food', icon: Search },
-    { label: 'Workouts', path: '/workouts', icon: Dumbbell },
-    { label: 'Profile', path: '/profile', icon: User },
-  ]
-
-  if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontFamily: 'var(--font-sans)' }}>Loading...</div>
+  if (loading) return <LoadingScreen />
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Profile</h1>
-        <button className={styles.logoutButton} onClick={() => { logout(); navigate('/login') }}>
-          Sign out
-        </button>
-      </div>
+      <PageHeader
+        title="Profile"
+        action={
+          <button className={styles.logoutButton} onClick={() => { logout(); navigate('/login') }}>
+            Sign out
+          </button>
+        }
+      />
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Body stats</div>
-        <div className={styles.card}>
+        <SectionLabel>Body stats</SectionLabel>
+        <Card>
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>Height (cm)</label>
-              <input
-                type="number"
-                value={form.height_cm}
-                onChange={e => update('height_cm', e.target.value)}
-                placeholder="165"
-              />
+              <input type="number" value={form.height_cm} onChange={e => update('height_cm', e.target.value)} placeholder="165" />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Weight (kg)</label>
-              <input
-                type="number"
-                value={form.weight_kg}
-                onChange={e => update('weight_kg', e.target.value)}
-                placeholder="65"
-              />
+              <input type="number" value={form.weight_kg} onChange={e => update('weight_kg', e.target.value)} placeholder="65" />
             </div>
           </div>
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>Age</label>
-              <input
-                type="number"
-                value={form.age}
-                onChange={e => update('age', e.target.value)}
-                placeholder="25"
-              />
+              <input type="number" value={form.age} onChange={e => update('age', e.target.value)} placeholder="25" />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Sex</label>
@@ -138,18 +108,14 @@ export default function Profile() {
           </div>
           <div className={styles.fieldLast}>
             <label className={styles.label}>Birthday</label>
-            <input
-              type="date"
-              value={form.birthday}
-              onChange={e => update('birthday', e.target.value)}
-            />
+            <input type="date" value={form.birthday} onChange={e => update('birthday', e.target.value)} />
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Goal</div>
-        <div className={styles.card}>
+        <SectionLabel>Goal</SectionLabel>
+        <Card>
           <div className={styles.field}>
             <label className={styles.label}>I want to</label>
             <select className={styles.select} value={form.goal} onChange={e => update('goal', e.target.value)}>
@@ -160,14 +126,8 @@ export default function Profile() {
           </div>
           {form.goal !== 'maintain' && (
             <div className={styles.fieldLast}>
-              <label className={styles.label}>
-                {form.goal === 'lose' ? 'Lose' : 'Gain'} per week (kg)
-              </label>
-              <select
-                className={styles.select}
-                value={form.target_weekly_change_kg}
-                onChange={e => update('target_weekly_change_kg', e.target.value)}
-              >
+              <label className={styles.label}>{form.goal === 'lose' ? 'Lose' : 'Gain'} per week (kg)</label>
+              <select className={styles.select} value={form.target_weekly_change_kg} onChange={e => update('target_weekly_change_kg', e.target.value)}>
                 <option value={0.25}>0.25 kg / week</option>
                 <option value={0.5}>0.5 kg / week</option>
                 <option value={0.75}>0.75 kg / week</option>
@@ -175,30 +135,25 @@ export default function Profile() {
               </select>
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Oura Ring</div>
-        <div className={styles.card}>
-          {form.oura_token ? (
+        <SectionLabel>Oura Ring</SectionLabel>
+        <Card>
+          {form.oura_token && (
             <div className={styles.field}>
               <div className={styles.ouraConnected}>
                 <div className={styles.ouraConnectedDot} />
                 Oura connected
               </div>
             </div>
-          ) : null}
+          )}
           <div className={styles.fieldLast}>
             <label className={styles.label}>Personal access token</label>
-            <input
-              type="password"
-              value={form.oura_token}
-              onChange={e => update('oura_token', e.target.value)}
-              placeholder="Paste your Oura token here"
-            />
+            <input type="password" value={form.oura_token} onChange={e => update('oura_token', e.target.value)} placeholder="Paste your Oura token here" />
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className={styles.section}>
@@ -208,27 +163,7 @@ export default function Profile() {
         {success && <div className={styles.success}>Profile saved</div>}
       </div>
 
-      <nav className={styles.bottomNav ?? ''} style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--bg)', borderTop: '0.5px solid var(--border)',
-        display: 'flex', justifyContent: 'space-around', padding: '12px 0 24px',
-      }}>
-        {navItems.map(({ label, path, icon: Icon }) => {
-          const active = location.pathname === path
-          return (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
-            >
-              <Icon size={20} color={active ? 'var(--primary)' : 'var(--muted)'} />
-              <span style={{ fontSize: 10, color: active ? 'var(--primary)' : 'var(--muted)', fontFamily: 'var(--font-sans)', letterSpacing: '0.03em' }}>
-                {label}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
+      <BottomNav />
     </div>
   )
 }

@@ -315,3 +315,16 @@
     justify-content: center;
     color: var(--muted);
   }
+
+  .linkButton {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    font-family: var(--font-sans);
+    padding: 4px 0;
+    text-align: center;
+  }

@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Home, Search, Dumbbell, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { getPRs, getExerciseHistory, logWeight, getRecommendations } from '../api/progress'
+import BottomNav from '../components/BottomNav'
+import PageHeader from '../components/PageHeader'
+import SectionLabel from '../components/SectionLabel'
+import Card from '../components/Card'
+import LoadingScreen from '../components/LoadingScreen'
+import EmptyState from '../components/EmptyState'
 import styles from '../styles/Progress.module.css'
 
 const today = () => new Date().toISOString().split('T')[0]
 
 export default function Progress() {
   const navigate = useNavigate()
-  const location = useLocation()
   const [prs, setPrs] = useState([])
   const [selectedPR, setSelectedPR] = useState(null)
   const [history, setHistory] = useState(null)
@@ -21,27 +26,18 @@ export default function Progress() {
 
   useEffect(() => {
     Promise.all([getPRs(), getRecommendations()])
-      .then(([prsRes, recRes]) => {
-        setPrs(prsRes.data)
-        setRecommendations(recRes.data)
-      })
+      .then(([prsRes, recRes]) => { setPrs(prsRes.data); setRecommendations(recRes.data) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
   const handleSelectPR = async (pr) => {
-    if (selectedPR?.exercise === pr.exercise) {
-      setSelectedPR(null)
-      setHistory(null)
-      return
-    }
+    if (selectedPR?.exercise === pr.exercise) { setSelectedPR(null); setHistory(null); return }
     setSelectedPR(pr)
     try {
       const res = await getExerciseHistory(pr.exercise_id || 1)
       setHistory(res.data)
-    } catch (err) {
-      console.error(err)
-    }
+    } catch (err) { console.error(err) }
   }
 
   const handleLogWeight = async () => {
@@ -54,80 +50,40 @@ export default function Progress() {
       const recRes = await getRecommendations()
       setRecommendations(recRes.data)
       setTimeout(() => setWeightLogged(false), 3000)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLogging(false)
-    }
+    } catch (err) { console.error(err) }
+    finally { setLogging(false) }
   }
 
-  const navItems = [
-    { label: 'Home', path: '/', icon: Home },
-    { label: 'Food', path: '/food', icon: Search },
-    { label: 'Workouts', path: '/workouts', icon: Dumbbell },
-    { label: 'Profile', path: '/profile', icon: User },
-  ]
+  const chartData = history?.history?.map(h => ({ date: h.date.slice(5), weight: h.weight_kg, reps: h.reps })) || []
 
-  const chartData = history?.history?.map(h => ({
-    date: h.date.slice(5),
-    weight: h.weight_kg,
-    reps: h.reps,
-  })) || []
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontFamily: 'var(--font-sans)' }}>
-      Loading...
-    </div>
-  )
+  if (loading) return <LoadingScreen />
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/')}>
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className={styles.title}>Progress</h1>
-      </div>
+      <PageHeader title="Progress" backTo="/" />
 
-      {/* weight tracking */}
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Weight</div>
+        <SectionLabel>Weight</SectionLabel>
         <div className={styles.weightSection}>
           <div className={styles.weightRow}>
-            <input
-              type="number"
-              value={weight}
-              onChange={e => setWeight(e.target.value)}
-              placeholder="Today's weight (kg)"
-              className={styles.weightInput}
-            />
-            <button
-              className={styles.logWeightButton}
-              onClick={handleLogWeight}
-              disabled={logging}
-            >
+            <input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Today's weight (kg)" className={styles.weightInput} />
+            <button className={styles.logWeightButton} onClick={handleLogWeight} disabled={logging}>
               {logging ? 'Saving...' : weightLogged ? 'Saved!' : 'Log weight'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* calorie recommendations summary */}
       {recommendations && (
         <div className={styles.section}>
-          <div className={styles.sectionLabel}>Calorie targets</div>
+          <SectionLabel>Calorie targets</SectionLabel>
           <div className={styles.trendCard}>
             {[
               { label: 'BMR', value: `${recommendations.bmr} kcal` },
               { label: 'Estimated TDEE', value: `${recommendations.estimated_tdee} kcal` },
               { label: 'Calorie target', value: `${recommendations.calorie_target} kcal` },
               { label: 'Protein target', value: `${recommendations.protein_target_g}g` },
-              {
-                label: 'Weight trend',
-                value: recommendations.weight_trend_kg_per_week != null
-                  ? `${recommendations.weight_trend_kg_per_week > 0 ? '+' : ''}${recommendations.weight_trend_kg_per_week} kg/week`
-                  : 'Need more data'
-              },
+              { label: 'Weight trend', value: recommendations.weight_trend_kg_per_week != null ? `${recommendations.weight_trend_kg_per_week > 0 ? '+' : ''}${recommendations.weight_trend_kg_per_week} kg/week` : 'Need more data' },
               { label: 'Data points', value: `${recommendations.data_points} weigh-ins` },
             ].map(({ label, value }) => (
               <div key={label} className={styles.trendRow}>
@@ -135,18 +91,15 @@ export default function Progress() {
                 <span className={styles.trendValue}>{value}</span>
               </div>
             ))}
-            {recommendations.note && (
-              <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>{recommendations.note}</p>
-            )}
+            {recommendations.note && <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>{recommendations.note}</p>}
           </div>
         </div>
       )}
 
-      {/* PRs */}
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Personal records</div>
+        <SectionLabel>Personal records</SectionLabel>
         {prs.length === 0 ? (
-          <div className={styles.emptyState}>No PRs yet — log a workout to get started</div>
+          <EmptyState>No PRs yet — log a workout to get started</EmptyState>
         ) : (
           <div className={styles.prGrid}>
             {prs.map((pr, i) => (
@@ -183,36 +136,10 @@ export default function Progress() {
                       <ResponsiveContainer width="100%" height={180}>
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#E8B4BC" />
-                          <XAxis
-                            dataKey="date"
-                            tick={{ fontSize: 10, fill: '#6E4555' }}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <YAxis
-                            tick={{ fontSize: 10, fill: '#6E4555' }}
-                            tickLine={false}
-                            axisLine={false}
-                            domain={['auto', 'auto']}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              background: '#FFF0F3',
-                              border: '0.5px solid #E8B4BC',
-                              borderRadius: 8,
-                              fontSize: 12,
-                              fontFamily: 'var(--font-sans)',
-                            }}
-                            formatter={(value) => [`${value}kg`, 'Weight']}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="weight"
-                            stroke="#D282A6"
-                            strokeWidth={2}
-                            dot={{ fill: '#D282A6', r: 3 }}
-                            activeDot={{ r: 5 }}
-                          />
+                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#6E4555' }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 10, fill: '#6E4555' }} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                          <Tooltip contentStyle={{ background: '#FFF0F3', border: '0.5px solid #E8B4BC', borderRadius: 8, fontSize: 12, fontFamily: 'var(--font-sans)' }} formatter={(value) => [`${value}kg`, 'Weight']} />
+                          <Line type="monotone" dataKey="weight" stroke="#D282A6" strokeWidth={2} dot={{ fill: '#D282A6', r: 3 }} activeDot={{ r: 5 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
@@ -226,27 +153,7 @@ export default function Progress() {
         )}
       </div>
 
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--bg)', borderTop: '0.5px solid var(--border)',
-        display: 'flex', justifyContent: 'space-around', padding: '12px 0 24px',
-      }}>
-        {navItems.map(({ label, path, icon: Icon }) => {
-          const active = location.pathname === path
-          return (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
-            >
-              <Icon size={20} color={active ? 'var(--primary)' : 'var(--muted)'} />
-              <span style={{ fontSize: 10, color: active ? 'var(--primary)' : 'var(--muted)', fontFamily: 'var(--font-sans)', letterSpacing: '0.03em' }}>
-                {label}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
+      <BottomNav />
     </div>
   )
 }
