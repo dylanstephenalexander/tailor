@@ -136,7 +136,16 @@ async def search_food(
     usda_results = []
     if usda_resp.status_code == 200:
         foods = usda_resp.json().get("foods", [])
-        usda_results = [map_usda_product(f) for f in foods]
+        for f in foods:
+            mapped = map_usda_product(f)
+            existing = await db.execute(
+                select(FoodItem).where(FoodItem.name == mapped["name"])
+            )
+            if not existing.scalar_one_or_none():
+                food_item = FoodItem(**mapped, created_by=None)
+                db.add(food_item)
+            usda_results.append(mapped)
+        await db.commit()
 
     return {
         "personal": personal,
