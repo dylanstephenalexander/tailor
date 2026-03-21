@@ -21,7 +21,7 @@ async def evaluate_cutscenes(user_id: int, log_date: str, totals: dict, prs_earn
     if totals.get("cholesterol", 0) >= 1250:
         triggered.append("omg_cholesterol")
 
-    if totals.get("fiber", 0) < 10:
+    if totals.get("fiber", 0) < 10 and totals.get("calories", 0) > 1000:
         triggered.append("low_fiber")
 
     # date based triggers

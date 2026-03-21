@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .database import engine, Base
 from . import models
-from .routers import auth, nutrition, food_log, profile, workouts, cutscenes, recommendations
+from .routers import auth, nutrition, food_log, profile, workouts, cutscenes, recommendations, dashboard
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +22,7 @@ app.include_router(profile.router)
 app.include_router(workouts.router)
 app.include_router(cutscenes.router)
 app.include_router(recommendations.router)
+app.include_router(dashboard.router)
 
 @app.get("/")
 def root():
