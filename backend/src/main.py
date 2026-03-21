@@ -14,8 +14,6 @@ from .routers import auth, nutrition, food_log, profile, workouts, cutscenes, re
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     yield
 
 limiter = Limiter(key_func=get_remote_address)

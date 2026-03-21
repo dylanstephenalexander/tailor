@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import styles from './PageHeader.module.css'
+import styles from '../styles/PageHeader.module.css'
 
 export default function PageHeader({ title, backTo, action }) {
   const navigate = useNavigate()

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Home, Search, Dumbbell, User } from 'lucide-react'
-import styles from './BottomNav.module.css'
+import styles from '../styles/BottomNav.module.css'
 
 const navItems = [
   { label: 'Home', path: '/', icon: Home },
