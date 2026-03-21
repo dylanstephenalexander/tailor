@@ -19,12 +19,23 @@ export default function Dashboard() {
       .then(res => {
         setData(res.data)
         if (res.data.cutscenes?.length > 0) {
-          setCutscene(res.data.cutscenes[0])
+          const dismissed = JSON.parse(sessionStorage.getItem('dismissed_cutscenes') || '[]')
+          const pending = res.data.cutscenes.filter(c => !dismissed.includes(`${c}_${today()}`))
+          if (pending.length > 0) {
+            setCutscene(pending[0])
+          }
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const handleDismissCutscene = (key) => {
+    const dismissed = JSON.parse(sessionStorage.getItem('dismissed_cutscenes') || '[]')
+    dismissed.push(`${key}_${today()}`)
+    sessionStorage.setItem('dismissed_cutscenes', JSON.stringify(dismissed))
+    setCutscene(null)
+  }
 
   if (loading) return <div className={styles.loading}>Loading...</div>
 
@@ -68,7 +79,6 @@ export default function Dashboard() {
         <div className={styles.date}>{formatDate()}</div>
       </div>
 
-      {/* calories */}
       <div className={styles.section}>
         <div className={styles.sectionLabel}>Calories</div>
         <div className={styles.calorieCard}>
@@ -88,7 +98,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* macros */}
       <div className={styles.section}>
         <div className={styles.macroGrid}>
           {[
@@ -115,7 +124,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* meals */}
       <div className={styles.section}>
         <div className={styles.sectionLabel}>Today's meals</div>
         <div className={styles.mealList}>
@@ -142,7 +150,6 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* workout */}
       <div className={styles.section}>
         <div className={styles.sectionLabel}>Today's workout</div>
         {data?.workouts?.length === 0 ? (
@@ -171,7 +178,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* bottom nav */}
       <nav className={styles.bottomNav}>
         {navItems.map(({ label, path, icon: Icon }) => {
           const active = location.pathname === path
@@ -186,7 +192,7 @@ export default function Dashboard() {
         })}
       </nav>
 
-      {cutscene && <CutsceneModal cutscene={cutscene} onDismiss={() => setCutscene(null)} />}
+      {cutscene && <CutsceneModal cutscene={cutscene} onDismiss={() => handleDismissCutscene(cutscene)} />}
     </div>
   )
 }

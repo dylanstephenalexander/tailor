@@ -207,3 +207,33 @@ async def get_exercises(
         )
     )
     return result.scalars().all()
+
+@router.post("/exercises", status_code=201)
+async def create_exercise(
+    data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    exercise = Exercise(
+        name=data.get("name"),
+        muscle_group=data.get("muscle_group"),
+        is_custom=True,
+        created_by=current_user.id
+    )
+    db.add(exercise)
+    await db.commit()
+    await db.refresh(exercise)
+    return exercise
+
+@router.get("/exercises/search")
+async def search_exercises(
+    q: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Exercise).where(
+            Exercise.name.ilike(f"%{q}%")
+        ).limit(10)
+    )
+    return result.scalars().all()

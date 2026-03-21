@@ -4,6 +4,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Food from './pages/Food'
 import ProtectedRoute from './components/ProtectedRoute'
+import Workouts from './pages/Workouts'
 
 const Protected = ({ children }) => <ProtectedRoute>{children}</ProtectedRoute>
 
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Protected><Dashboard /></Protected>} />
         <Route path="/food" element={<Protected><Food /></Protected>} />
+        <Route path="/workouts" element={<Protected><Workouts /></Protected>} />
       </Routes>
     </BrowserRouter>
   )
