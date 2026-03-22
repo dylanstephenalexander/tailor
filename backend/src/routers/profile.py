@@ -17,6 +17,10 @@ class ProfileCreate(BaseModel):
     target_weekly_change_kg: float = 0.0
     birthday: str | None = None
     oura_token: str | None = None
+    calorie_goal: float | None = None
+    protein_goal: float | None = None
+    carbs_goal:   float | None = None
+    fat_goal:     float | None = None
 
 class ProfileResponse(ProfileCreate):
     id: int

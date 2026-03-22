@@ -27,6 +27,11 @@ class UserProfile(Base):
     target_weekly_change_kg = Column(Float, default=0.0)
     birthday = Column(String, nullable=True)
     oura_token = Column(String, nullable=True)
+    # user-set nutrition goals
+    calorie_goal = Column(Float, nullable=True)
+    protein_goal = Column(Float, nullable=True)
+    carbs_goal   = Column(Float, nullable=True)
+    fat_goal     = Column(Float, nullable=True)
 
 
 class FoodItem(Base):
@@ -140,6 +145,7 @@ class PersonalRecord(Base):
     weight_kg = Column(Float, nullable=False)
     reps = Column(Integer, nullable=False)
     achieved_at = Column(String, nullable=False)
+
 
 class WeightLog(Base):
     __tablename__ = "weight_log"

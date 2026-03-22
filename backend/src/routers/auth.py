@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 from ..database import get_db
 from ..models import User
 from ..schemas import UserCreate, UserRead, Token
-from ..auth import hash_password, verify_password, create_access_token
+from ..auth import hash_password, verify_password, create_access_token, get_current_user
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from pydantic import BaseModel, EmailStr
@@ -23,6 +23,24 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
+
+@router.get("/me", response_model=UserRead)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.get("/check-username")
+async def check_username(username: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.username == username))
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Username already taken")
+    return {"available": True}
+
+@router.get("/check-email")
+async def check_email(email: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.email == email))
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Email already registered")
+    return {"available": True}
 
 @router.post("/register", response_model=UserRead, status_code=201)
 @limiter.limit("3/minute")
@@ -59,7 +77,6 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest, db: Asy
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()
 
-    # always return success to prevent email enumeration
     if not user:
         return {"message": "If that email exists you'll receive a reset link"}
 

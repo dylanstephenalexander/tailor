@@ -1,172 +1,263 @@
 import { useState, useEffect } from 'react'
-import { getDashboard } from '../api/dashboard'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useGreeting } from '../hooks/useGreeting'
+import { api } from '../api/client'
 import BottomNav from '../components/BottomNav'
-import CutsceneModal from '../components/CutsceneModal'
-import SectionLabel from '../components/SectionLabel'
-import LoadingScreen from '../components/LoadingScreen'
 import styles from '../styles/Dashboard.module.css'
 
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => new Date().toISOString().slice(0, 10)
+
+function CalorieRing({ consumed, goal }) {
+  if (!goal) return null
+  const pct    = Math.min(consumed / goal, 1)
+  const r      = 34
+  const circ   = 2 * Math.PI * r
+  const offset = circ * (1 - pct)
+  const over   = consumed > goal
+  const left   = Math.max(goal - consumed, 0)
+
+  return (
+    <div className={styles.ringWrap}>
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--bg-raised)" strokeWidth="7"/>
+        <circle
+          cx="40" cy="40" r={r}
+          fill="none"
+          stroke={over ? 'var(--danger)' : 'var(--pink)'}
+          strokeWidth="7"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 40 40)"
+          style={{ transition: 'stroke-dashoffset 0.8s var(--ease)' }}
+        />
+      </svg>
+      <div className={styles.ringCenter}>
+        <span className={styles.ringNum} style={{ color: over ? 'var(--danger)' : 'var(--pink)' }}>
+          {over ? `+${Math.round(consumed - goal)}` : Math.round(left)}
+        </span>
+        <span className={styles.ringLbl}>{over ? 'over' : 'kcal left'}</span>
+      </div>
+    </div>
+  )
+}
+
+function MacroBar({ label, value, goal, color }) {
+  const pct = goal > 0 ? Math.min((value / goal) * 100, 100) : 0
+  return (
+    <div className={styles.macroRow}>
+      <span className={styles.macroLabel}>{label}</span>
+      <div className="bar-bg" style={{ flex: 1 }}>
+        <div className="bar-fill" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className={styles.macroVal}>{Math.round(value)}g</span>
+    </div>
+  )
+}
+
+function WeekStreak({ workoutsThisWeek = [] }) {
+  const days    = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+
+  return (
+    <div className={styles.streakSection}>
+      <span className={styles.streakLabel}>
+        this week · {workoutsThisWeek.length} workout{workoutsThisWeek.length !== 1 ? 's' : ''}
+      </span>
+      <div className={styles.streakDots}>
+        {days.map((d, i) => {
+          const isToday = i === todayIdx
+          const isDone  = workoutsThisWeek.includes(i)
+          return (
+            <div key={i} className={`${styles.sDot} ${isDone ? styles.done : isToday ? styles.today : styles.empty}`}>
+              <span className={styles.sDotLetter}>{d}</span>
+              <div className={styles.sDotPip} />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function WorkoutCard({ lastWorkout, latestPr, workoutsThisWeek }) {
+  const navigate = useNavigate()
+
+  if (!lastWorkout) {
+    return (
+      <div className={`card ${styles.workoutCard}`}>
+        <div className={styles.workoutHeader}>
+          <div className={styles.cardTag}>workouts</div>
+          <div className={styles.emptyWorkout}>
+            <p>no workouts logged yet</p>
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/log-workout')}>
+              log your first
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const daysAgo = lastWorkout.days_ago === 0
+    ? 'today'
+    : lastWorkout.days_ago === 1
+    ? 'yesterday'
+    : `${lastWorkout.days_ago} days ago`
+
+  return (
+    <div className={`card ${styles.workoutCard}`}>
+      <div className={styles.workoutHeader}>
+        <div className={styles.cardTag}>last workout</div>
+        <div className={styles.workoutName}>{lastWorkout.notes || 'Workout'}</div>
+        <div className={styles.workoutMeta}>
+          {daysAgo}
+          {lastWorkout.duration_minutes ? ` · ${lastWorkout.duration_minutes} min` : ''}
+          {lastWorkout.set_count ? ` · ${lastWorkout.set_count} sets` : ''}
+        </div>
+      </div>
+
+      {latestPr && (
+        <div className={styles.prRibbon}>
+          <div className={styles.trophyBg}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2L9.6 6H14L10.5 8.5L11.8 13L8 10.5L4.2 13L5.5 8.5L2 6H6.4L8 2Z" fill="var(--brown)"/>
+            </svg>
+          </div>
+          <div className={styles.prInfo}>
+            <span className={styles.prLabel}>latest pr</span>
+            <span className={styles.prVal}>
+              {latestPr.exercise_name} · {Math.round(latestPr.weight_kg * 2.205)} lbs × {latestPr.reps}
+            </span>
+          </div>
+          {latestPr.is_new && <span className="pill pill-olive">NEW</span>}
+        </div>
+      )}
+
+      <WeekStreak workoutsThisWeek={workoutsThisWeek} />
+    </div>
+  )
+}
 
 export default function Dashboard() {
-  const navigate = useNavigate()
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [cutscene, setCutscene] = useState(null)
+  const { user }                  = useAuth()
+  console.log('user object:', user)
+  const greeting                  = useGreeting(user?.username || '')
+  const navigate                  = useNavigate()
+  const [data, setData]           = useState(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState(null)
 
   useEffect(() => {
-    getDashboard(today())
-      .then(res => {
-        setData(res.data)
-        if (res.data.cutscenes?.length > 0) {
-          const dismissed = JSON.parse(sessionStorage.getItem('dismissed_cutscenes') || '[]')
-          const pending = res.data.cutscenes.filter(c => !dismissed.includes(`${c}_${today()}`))
-          if (pending.length > 0) setCutscene(pending[0])
-        }
-      })
-      .catch(console.error)
+    api.get(`/dashboard/${today()}`)
+      .then(setData)
+      .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
 
-  const handleDismissCutscene = (key) => {
-    const dismissed = JSON.parse(sessionStorage.getItem('dismissed_cutscenes') || '[]')
-    dismissed.push(`${key}_${today()}`)
-    sessionStorage.setItem('dismissed_cutscenes', JSON.stringify(dismissed))
-    setCutscene(null)
-  }
+  const profile          = data?.profile
+  const totals           = data?.food?.totals
+  const calorieGoal      = profile?.calorie_goal
+  const proteinGoal      = profile?.protein_goal
+  const carbsGoal        = profile?.carbs_goal
+  const fatGoal          = profile?.fat_goal
+  const lastWorkout      = data?.last_workout
+  const latestPr         = data?.latest_pr
+  const workoutsThisWeek = data?.workouts_this_week || []
 
-  if (loading) return <LoadingScreen />
+  const subheading = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return "let's make today great"
+    if (h < 17) return "keeping it up today?"
+    if (h < 21) return "how's the day been?"
+    return "still going strong"
+  })()
 
-  const totals = data?.food?.totals || {}
-  const recommendations = data?.recommendations
-  const calorieTarget = recommendations?.calorie_target || 2000
-  const proteinTarget = recommendations?.protein_target_g || 120
-  const carbTarget = Math.round(calorieTarget * 0.45 / 4)
-  const fatTarget = Math.round(calorieTarget * 0.30 / 9)
-  const caloriePercent = Math.min((totals.calories / calorieTarget) * 100, 100)
-  const remaining = Math.max(Math.round(calorieTarget - totals.calories), 0)
-
-  const greeting = () => {
-    const hour = new Date().getHours()
-    const name = data?.profile?.username || 'love'
-    if (hour < 12) return { prefix: 'Good morning', name }
-    if (hour < 17) return { prefix: 'Good afternoon', name }
-    return { prefix: 'Good evening', name }
-  }
-
-  const formatDate = () => new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric'
-  })
-
-  const { prefix, name } = greeting()
+  if (loading) return (
+    <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" />
+    </div>
+  )
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.greeting}>
-          {prefix}, <span className={styles.greetingName}>{name}.</span>
+    <div className="page">
+      <header className={styles.header}>
+        <div className={styles.headerBg}>
+          <div className={styles.greeting}>{greeting}</div>
+          <div className={styles.subheading}>{subheading}</div>
         </div>
-        <div className={styles.date}>{formatDate()}</div>
-      </div>
+        <svg className={styles.wave} viewBox="0 0 390 20" preserveAspectRatio="none">
+          <path d="M0 8 Q49 0 98 8 Q147 16 196 8 Q245 0 294 8 Q343 16 390 8 L390 20 L0 20 Z" fill="var(--bg)"/>
+        </svg>
+      </header>
 
-      <div className={styles.section}>
-        <SectionLabel>Calories</SectionLabel>
-        <div className={styles.calorieCard}>
-          <div className={styles.calorieTop}>
-            <div>
-              <div className={styles.calorieNumber}>{Math.round(totals.calories).toLocaleString()}</div>
-              <div className={styles.calorieSubLabel}>consumed today</div>
-            </div>
-            <div className={styles.calorieRemaining}>
-              <div className={styles.calorieRemainingNum}>{remaining.toLocaleString()}</div>
-              <div className={styles.calorieRemainingLabel}>remaining</div>
-            </div>
-          </div>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${caloriePercent}%` }} />
-          </div>
-        </div>
-      </div>
+      <div className="page-content" style={{ paddingTop: 8 }}>
+        {error && <p style={{ color: 'var(--danger)', fontSize: 13 }}>{error}</p>}
 
-      <div className={styles.section}>
-        <div className={styles.macroGrid}>
-          {[
-            { label: 'Protein', value: totals.protein, target: proteinTarget, color: 'var(--primary)' },
-            { label: 'Carbs', value: totals.carbs, target: carbTarget, color: '#E8B4BC' },
-            { label: 'Fat', value: totals.fat, target: fatTarget, color: 'var(--muted)' },
-          ].map(({ label, value, target, color }) => (
-            <div key={label} className={styles.macroCard}>
-              <div className={styles.macroName}>{label}</div>
-              <div className={styles.macroValue}>
-                {Math.round(value || 0)}<span className={styles.macroUnit}>g</span>
-              </div>
-              <div className={styles.macroBar}>
-                <div className={styles.macroBarFill} style={{ width: `${Math.min(((value || 0) / target) * 100, 100)}%`, background: color }} />
+        {/* calories + macros — only show if profile has goals set */}
+        {calorieGoal ? (
+          <div className={`card card-pad animate-fade-up ${styles.calCard}`}>
+            <div className={styles.calTop}>
+              <CalorieRing consumed={totals?.calories || 0} goal={calorieGoal} />
+              <div className={styles.macros}>
+                <MacroBar label="protein" value={totals?.protein || 0} goal={proteinGoal} color="var(--pink)" />
+                <MacroBar label="carbs"   value={totals?.carbs   || 0} goal={carbsGoal}   color="var(--brown-light)" />
+                <MacroBar label="fat"     value={totals?.fat     || 0} goal={fatGoal}     color="var(--cream-dark)" />
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <SectionLabel>Today's meals</SectionLabel>
-        <div className={styles.mealList}>
-          {data?.food?.entries?.length === 0 && (
-            <div className={styles.emptyState}>Nothing logged yet</div>
-          )}
-          {data?.food?.entries?.map(entry => (
-            <div key={entry.id} className={styles.mealRow}>
-              <div className={styles.mealLeft}>
-                <div className={styles.mealDot} />
-                <div>
-                  <div className={styles.mealName}>{entry.food.name}</div>
-                  <div className={styles.mealMeta}>
-                    {entry.meal_type} · {entry.servings} serving{entry.servings !== 1 ? 's' : ''}
-                  </div>
-                </div>
+            <hr className="divider" style={{ margin: '12px 0' }} />
+            <div className={styles.calFooter}>
+              <div className={styles.calStat}>
+                <span className={styles.calStatNum} style={{ color: 'var(--pink)' }}>
+                  {Math.round(totals?.calories || 0)}
+                </span>
+                <span className={styles.calStatLbl}>consumed</span>
               </div>
-              <div className={styles.mealCal}>{Math.round(entry.food.calories * entry.servings)}</div>
+              <div className={styles.calDivider} />
+              <div className={styles.calStat}>
+                <span className={styles.calStatNum}>{Math.round(calorieGoal)}</span>
+                <span className={styles.calStatLbl}>goal</span>
+              </div>
+              <div className={styles.calDivider} />
+              <div className={styles.calStat}>
+                <span className={styles.calStatNum} style={{ color: 'var(--olive-light)' }}>
+                  {Math.round(totals?.protein || 0)}g
+                </span>
+                <span className={styles.calStatLbl}>protein</span>
+              </div>
             </div>
-          ))}
-        </div>
-        <button className={styles.logButton} onClick={() => navigate('/food')}>+ Log food</button>
-        <button className={styles.linkButton} onClick={() => navigate('/nutrition')}>
-          See full nutrition breakdown →
-        </button>
-      </div>
-
-      <div className={styles.section}>
-        <SectionLabel>Today's workout</SectionLabel>
-        {data?.workouts?.length === 0 ? (
-          <div className={styles.workoutCard}>
-            <div>
-              <div className={styles.workoutLabel}>No workout logged</div>
-              <div className={styles.workoutName}>Rest day</div>
-            </div>
-            <button className={styles.workoutButton} onClick={() => navigate('/workouts')}>
-              Log workout
-            </button>
           </div>
         ) : (
-          data.workouts.map(workout => (
-            <div key={workout.id} className={styles.workoutCard} style={{ display: 'block' }}>
-              <div className={styles.workoutLabel}>
-                {workout.duration_minutes ? `${workout.duration_minutes} min` : 'Workout'}
-              </div>
-              <div className={styles.workoutName}>{workout.notes || 'Workout logged'}</div>
-              <div className={styles.workoutMeta}>{workout.set_count} sets logged</div>
-              {data.prs_today?.length > 0 && <div className={styles.prBadge}>PR earned</div>}
-            </div>
-          ))
+          <div className={`card card-pad animate-fade-up ${styles.setupPrompt}`}>
+            <p className={styles.setupText}>set up your nutrition goals to see your daily progress</p>
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/profile')}>
+              set up profile
+            </button>
+          </div>
         )}
-        <button className={styles.linkButton} onClick={() => navigate('/progress')}>
-          See progress & PRs →
-        </button>
+
+        {/* workout card */}
+        <div className="animate-fade-up delay-2">
+          <WorkoutCard
+            lastWorkout={lastWorkout}
+            latestPr={latestPr}
+            workoutsThisWeek={workoutsThisWeek}
+          />
+        </div>
+
+        {/* action buttons */}
+        <div className={`${styles.btns} animate-fade-up delay-3`}>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => navigate('/food')}>
+            + log food
+          </button>
+          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => navigate('/log-workout')}>
+            + log workout
+          </button>
+        </div>
       </div>
 
       <BottomNav />
-      {cutscene && <CutsceneModal cutscene={cutscene} onDismiss={() => handleDismissCutscene(cutscene)} />}
     </div>
   )
 }

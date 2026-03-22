@@ -1,8 +1,10 @@
+from datetime import date as date_type, timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from ..database import get_db
-from ..models import User, FoodLog, FoodItem, Workout, WorkoutSet, PersonalRecord, UserProfile
+from ..models import User, FoodLog, FoodItem, Workout, WorkoutSet, PersonalRecord, UserProfile, Exercise
 from ..auth import get_current_user
 from ..routers.cutscenes import evaluate_cutscenes
 from ..routers.recommendations import get_recommendations
@@ -15,7 +17,7 @@ async def get_dashboard(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # food log + totals
+    # ── food log + totals ────────────────────────────────────────────────────
     food_result = await db.execute(
         select(FoodLog, FoodItem)
         .join(FoodItem, FoodLog.food_item_id == FoodItem.id)
@@ -52,21 +54,75 @@ async def get_dashboard(
 
     totals = {k: round(v, 1) for k, v in totals.items()}
 
-    # workouts
-    workout_result = await db.execute(
+    # ── profile ──────────────────────────────────────────────────────────────
+    profile_result = await db.execute(
+        select(UserProfile).where(UserProfile.user_id == current_user.id)
+    )
+    profile = profile_result.scalar_one_or_none()
+
+    # ── last workout (across all dates, not just today) ──────────────────────
+    last_workout_result = await db.execute(
+        select(Workout)
+        .where(Workout.user_id == current_user.id)
+        .order_by(Workout.date.desc(), Workout.logged_at.desc())
+        .limit(1)
+    )
+    last_workout = last_workout_result.scalar_one_or_none()
+
+    last_workout_summary = None
+    if last_workout:
+        sets_result = await db.execute(
+            select(func.count(WorkoutSet.id))
+            .where(WorkoutSet.workout_id == last_workout.id)
+        )
+        set_count = sets_result.scalar() or 0
+
+        today = date_type.fromisoformat(date)
+        workout_date = date_type.fromisoformat(last_workout.date)
+        days_ago = (today - workout_date).days
+
+        last_workout_summary = {
+            "id": last_workout.id,
+            "date": last_workout.date,
+            "notes": last_workout.notes,
+            "duration_minutes": last_workout.duration_minutes,
+            "set_count": set_count,
+            "days_ago": days_ago,
+        }
+
+    # ── workouts this week (Mon–Sun) ─────────────────────────────────────────
+    today_date = date_type.fromisoformat(date)
+    week_start = today_date - timedelta(days=today_date.weekday())  # Monday
+    week_end   = week_start + timedelta(days=6)
+
+    week_result = await db.execute(
+        select(Workout.date)
+        .where(
+            Workout.user_id == current_user.id,
+            Workout.date >= week_start.isoformat(),
+            Workout.date <= week_end.isoformat(),
+        )
+    )
+    week_workout_dates = [r[0] for r in week_result.all()]
+    # convert to day-of-week index 0=Mon
+    workouts_this_week = list({
+        (date_type.fromisoformat(d).weekday()) for d in week_workout_dates
+    })
+
+    # ── today's workouts (for cutscenes) ────────────────────────────────────
+    today_workouts_result = await db.execute(
         select(Workout).where(
             Workout.user_id == current_user.id,
             Workout.date == date
         )
     )
-    workouts = workout_result.scalars().all()
+    today_workouts = today_workouts_result.scalars().all()
 
-    workout_summaries = []
     prs_today = []
-    for workout in workouts:
+    for workout in today_workouts:
         sets_result = await db.execute(
             select(WorkoutSet, PersonalRecord)
-            .join(PersonalRecord, 
+            .join(PersonalRecord,
                 (PersonalRecord.exercise_id == WorkoutSet.exercise_id) &
                 (PersonalRecord.user_id == current_user.id) &
                 (PersonalRecord.achieved_at == date),
@@ -74,34 +130,46 @@ async def get_dashboard(
             )
             .where(WorkoutSet.workout_id == workout.id)
         )
-        sets = sets_result.all()
-        for ws, pr in sets:
+        for ws, pr in sets_result.all():
             if pr and pr.achieved_at == date:
                 prs_today.append(pr)
 
-        workout_summaries.append({
-            "id": workout.id,
-            "duration_minutes": workout.duration_minutes,
-            "notes": workout.notes,
-            "set_count": len(sets),
-        })
+    # ── latest PR with exercise name ─────────────────────────────────────────
+    latest_pr_result = await db.execute(
+        select(PersonalRecord, Exercise)
+        .join(Exercise, PersonalRecord.exercise_id == Exercise.id)
+        .where(PersonalRecord.user_id == current_user.id)
+        .order_by(PersonalRecord.achieved_at.desc())
+        .limit(1)
+    )
+    latest_pr_row = latest_pr_result.first()
 
-    # cutscenes
+    latest_pr = None
+    if latest_pr_row:
+        pr, ex = latest_pr_row
+        # flag as new if achieved within last 7 days
+        pr_date   = date_type.fromisoformat(pr.achieved_at)
+        is_new    = (today_date - pr_date).days <= 7
+        latest_pr = {
+            "exercise_id":   pr.exercise_id,
+            "exercise_name": ex.name,
+            "muscle_group":  ex.muscle_group,
+            "weight_kg":     pr.weight_kg,
+            "reps":          pr.reps,
+            "achieved_at":   pr.achieved_at,
+            "is_new":        is_new,
+        }
+
+    # ── cutscenes ────────────────────────────────────────────────────────────
     cutscenes = await evaluate_cutscenes(
         current_user.id, date, totals, prs_today, db
     )
 
-    # recommendations
+    # ── recommendations ──────────────────────────────────────────────────────
     try:
         recommendations = await get_recommendations(db, current_user)
     except Exception:
         recommendations = None
-
-    # profile
-    profile_result = await db.execute(
-        select(UserProfile).where(UserProfile.user_id == current_user.id)
-    )
-    profile = profile_result.scalar_one_or_none()
 
     return {
         "date": date,
@@ -110,7 +178,9 @@ async def get_dashboard(
             "entries": entries,
             "totals": totals,
         },
-        "workouts": workout_summaries,
+        "last_workout": last_workout_summary,
+        "workouts_this_week": workouts_this_week,
+        "latest_pr": latest_pr,
         "prs_today": [{"exercise_id": pr.exercise_id, "weight_kg": pr.weight_kg} for pr in prs_today],
         "cutscenes": cutscenes,
         "recommendations": recommendations,

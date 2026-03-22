@@ -1,159 +1,193 @@
-.page {
-    min-height: 100vh;
-    background: var(--bg);
-    padding-bottom: 100px;
-  }
-  
-  .header {
-    padding: 52px 24px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .title {
-    font-family: var(--font-serif);
-    font-size: 26px;
-    font-weight: 400;
-    color: var(--dark);
-  }
-  
-  .logoutButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--muted);
-    font-size: 13px;
-    font-family: var(--font-sans);
-  }
-  
-  .section {
-    padding: 0 20px;
-    margin-top: 20px;
-  }
-  
-  .sectionLabel {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  
-  .card {
-    background: var(--card);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    border: 0.5px solid var(--border);
-  }
-  
-  .field {
-    margin-bottom: 16px;
-  }
-  
-  .fieldLast {
-    margin-bottom: 0;
-  }
-  
-  .label {
-    font-size: 12px;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  
-  .row3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-  }
-  
-  .select {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg);
-    font-size: 14px;
-    color: var(--dark);
-    outline: none;
-    font-family: var(--font-sans);
-  }
-  
-  .saveButton {
-    width: 100%;
-    padding: 14px;
-    background: var(--primary);
-    color: var(--card);
-    border: none;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: opacity 0.2s;
-  }
-  
-  .saveButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
-  .success {
-    background: var(--card);
-    color: var(--primary);
-    border: 0.5px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 13px;
-    margin-top: 12px;
-    text-align: center;
-  }
-  
-  .statRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
-  
-  .statRow:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  
-  .statLabel {
-    font-size: 13px;
-    color: var(--muted);
-  }
-  
-  .statValue {
-    font-family: var(--font-serif);
-    font-size: 16px;
-    color: var(--dark);
-  }
-  
-  .ouraConnected {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--primary);
-  }
-  
-  .ouraConnectedDot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--primary);
-  }
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-5);
+  padding-right: var(--space-4);
+}
+
+.savedBtn {
+  background: var(--success-bg);
+  color: var(--olive-light);
+  border: 1px solid var(--olive);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+/* sections */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+
+.sectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* row layout */
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+/* unit label inside input */
+.inputUnit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* sex segmented control */
+.segmented {
+  display: flex;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 44px;
+}
+
+.segment {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+  border-right: 1px solid var(--border);
+}
+
+.segment:last-child {
+  border-right: none;
+}
+
+.segmentActive {
+  background: var(--pink);
+  color: var(--brown);
+}
+
+/* goal grid */
+.goalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.goalBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.goalBtn:hover {
+  border-color: var(--border-light);
+}
+
+.goalBtnActive {
+  border-color: var(--pink);
+  background: rgba(255, 169, 231, 0.08);
+}
+
+.goalIcon {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
+.goalBtnActive .goalIcon {
+  color: var(--pink);
+}
+
+.goalLabel {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.goalBtnActive .goalLabel {
+  color: var(--pink);
+}
+
+/* rate buttons */
+.rateRow {
+  display: flex;
+  gap: 8px;
+}
+
+.rateBtn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.rateBtnActive {
+  border-color: var(--pink);
+  color: var(--pink);
+  background: rgba(255, 169, 231, 0.08);
+}
+
+/* account rows */
+.accountRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.accountRow:last-child {
+  border-bottom: none;
+}
+
+.accountLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.accountVal {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
