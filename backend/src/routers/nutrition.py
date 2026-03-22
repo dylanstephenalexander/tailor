@@ -7,8 +7,93 @@ from ..database import get_db
 from ..models import FoodItem, FoodLog
 from ..auth import get_current_user
 from ..models import User
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
+
+class FoodItemCreate(BaseModel):
+    name: str
+    calories: float = 0
+    protein: float = 0
+    carbs: float = 0
+    fat: float = 0
+    serving_label: str | None = None
+    unit_size_g: float | None = None
+    # micros — all optional
+    fiber: float = 0
+    sugar: float = 0
+    saturated_fat: float = 0
+    trans_fat: float = 0
+    cholesterol: float = 0
+    polyunsaturated_fat: float = 0
+    monounsaturated_fat: float = 0
+    omega_3: float = 0
+    omega_6: float = 0
+    omega_9: float = 0
+    sodium: float = 0
+    potassium: float = 0
+    calcium: float = 0
+    iron: float = 0
+    magnesium: float = 0
+    zinc: float = 0
+    phosphorus: float = 0
+    selenium: float = 0
+    copper: float = 0
+    manganese: float = 0
+    chromium: float = 0
+    iodine: float = 0
+    vitamin_a: float = 0
+    vitamin_c: float = 0
+    vitamin_d: float = 0
+    vitamin_e: float = 0
+    vitamin_k: float = 0
+    vitamin_b6: float = 0
+    vitamin_b12: float = 0
+    folate: float = 0
+    thiamin: float = 0
+    riboflavin: float = 0
+    niacin: float = 0
+    pantothenic_acid: float = 0
+    biotin: float = 0
+    choline: float = 0
+
+class FoodItemMicros(BaseModel):
+    fiber: float = 0
+    sugar: float = 0
+    saturated_fat: float = 0
+    trans_fat: float = 0
+    cholesterol: float = 0
+    polyunsaturated_fat: float = 0
+    monounsaturated_fat: float = 0
+    omega_3: float = 0
+    omega_6: float = 0
+    omega_9: float = 0
+    sodium: float = 0
+    potassium: float = 0
+    calcium: float = 0
+    iron: float = 0
+    magnesium: float = 0
+    zinc: float = 0
+    phosphorus: float = 0
+    selenium: float = 0
+    copper: float = 0
+    manganese: float = 0
+    chromium: float = 0
+    iodine: float = 0
+    vitamin_a: float = 0
+    vitamin_c: float = 0
+    vitamin_d: float = 0
+    vitamin_e: float = 0
+    vitamin_k: float = 0
+    vitamin_b6: float = 0
+    vitamin_b12: float = 0
+    folate: float = 0
+    thiamin: float = 0
+    riboflavin: float = 0
+    niacin: float = 0
+    pantothenic_acid: float = 0
+    biotin: float = 0
+    choline: float = 0
 
 def map_off_product(product: dict) -> dict:
     n = product.get("nutriments", {})
@@ -105,6 +190,40 @@ def map_usda_product(food: dict) -> dict:
         "choline": nutrients.get(1180, 0),
         "is_custom": False,
     }
+
+@router.post("/food", status_code=201)
+async def create_food_item(
+    data: FoodItemCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    food = FoodItem(**data.model_dump(), is_custom=True, created_by=current_user.id)
+    db.add(food)
+    await db.commit()
+    await db.refresh(food)
+    return food
+
+@router.patch("/food/{food_id}/micros", status_code=200)
+async def update_food_micros(
+    food_id: int,
+    data: FoodItemMicros,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(FoodItem).where(
+            FoodItem.id == food_id,
+            FoodItem.created_by == current_user.id
+        )
+    )
+    food = result.scalar_one_or_none()
+    if not food:
+        raise HTTPException(status_code=404, detail="Food item not found or not yours to edit")
+    for key, value in data.model_dump().items():
+        setattr(food, key, value)
+    await db.commit()
+    await db.refresh(food)
+    return food
 
 @router.get("/search")
 async def search_food(

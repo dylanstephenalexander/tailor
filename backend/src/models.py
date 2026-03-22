@@ -89,6 +89,8 @@ class FoodItem(Base):
 
     is_custom = Column(Boolean, default=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    unit_size_g   = Column(Float,  nullable=True)
+    serving_label = Column(String, nullable=True)
 
 
 class FoodLog(Base):
